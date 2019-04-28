@@ -2,9 +2,9 @@
 #include "iap.h"
 
 
-volatile uint32_t FlashData[FLASH_BUFF];
+volatile uint32_t FlashPar[FLASH_PAR_BUFF];
 
-
+volatile uint32_t FlashApp[FLASH_APP_BUFF];
 
 //读取指定地址的字(32位数据) 
 //faddr:读地址 
@@ -68,12 +68,12 @@ void FLASH_Write(uint32_t WriteAddr,uint32_t *pBuffer,uint32_t NumToWrite)
 	FLASH_EraseInitTypeDef FlashEraseInit;
 	HAL_StatusTypeDef FlashStatus=HAL_OK;
 	uint32_t SectorError=0;
-	uint32_t addrx=0;
+//	uint32_t addrx=0;
 	uint32_t endaddr=0;	
-	//if(WriteAddr<STM32_FLASH_BASE||WriteAddr%4)return;	//非法地址
+	if(WriteAddr<STM32_FLASH_BASE||WriteAddr%4)return;	//非法地址
     
 	HAL_FLASH_Unlock();             //解锁	
-	addrx=WriteAddr;				//写入的起始地址
+	//addrx=WriteAddr;				//写入的起始地址
 	endaddr=WriteAddr+NumToWrite*4;	//写入的结束地址
     
 	//if(addrx<0X08008000)
@@ -95,9 +95,32 @@ void FLASH_Write(uint32_t WriteAddr,uint32_t *pBuffer,uint32_t NumToWrite)
 			addrx+=4;
 			FLASH_WaitForLastOperation(FLASH_TIMEOUT_VALUE);                //等待上次操作完成
 		}
+		
+		switch(WriteAddr)
+		{
+			case FLASH_IAP_ADDR:
+				FlashEraseInit.NbPages=FLASH_IAP_PAGE_SIZE;
+			break;
+			case FLASH_APP1_ADDR:
+				FlashEraseInit.NbPages=FLASH_APP1_PAGE_SIZE;
+			break;
+			case FLASH_APP2_ADDR:
+				FlashEraseInit.NbPages=FLASH_APP2_PAGE_SIZE;
+			break;
+			case FLASH_PAR_ADDR:
+				FlashEraseInit.NbPages=FLASH_PAR_PAGE_SIZE;
+			break;
+			default:
+				HAL_FLASH_Lock();           //上锁
+				return;
+			//	break;
+			
+		}
 		*/
+		if(0==(WriteAddr%0x1000))
+		{
 			FlashEraseInit.TypeErase= FLASH_TYPEERASE_PAGES;       //擦除类型，扇区擦除 
-			FlashEraseInit.PageAddress=0x08007000;//STMFLASH_GetFlashSector(addrx);   //要擦除的扇区
+			FlashEraseInit.PageAddress=WriteAddr;//STMFLASH_GetFlashSector(addrx);   //要擦除的扇区
 			FlashEraseInit.NbPages=1;                             //一次只擦除一个扇区
 			
 			if(HAL_FLASHEx_Erase(&FlashEraseInit,&SectorError)!=HAL_OK) 
@@ -105,6 +128,8 @@ void FLASH_Write(uint32_t WriteAddr,uint32_t *pBuffer,uint32_t NumToWrite)
 				//break;//发生错误了	
 			}
 			FLASH_WaitForLastOperation(FLASH_TIMEOUT_VALUE);                //等待上次操作完成
+		}
+		
 //	}
 	FlashStatus=FLASH_WaitForLastOperation(FLASH_TIMEOUT_VALUE );            //等待上次操作完成
 	if(FlashStatus==HAL_OK)
@@ -126,24 +151,24 @@ void FLASH_Write(uint32_t WriteAddr,uint32_t *pBuffer,uint32_t NumToWrite)
 
 void read_par(void)
 {
-	FLASH_Read(FLASH_PAR_ADDR,(uint32_t *)FlashData,FLASH_BUFF);  
-	if((FlashData[FLASH_BOOT_ADDR]<=10)&&(0!=FlashData[FLASH_BOOT_ADDR]))
+	FLASH_Read(FLASH_PAR_ADDR,(uint32_t *)FlashPar,FLASH_PAR_BUFF);  
+	if((FlashPar[FLASH_BOOT_ADDR]<=10))//&&(0!=FlashPar[FLASH_BOOT_ADDR]))
 	{
-		my_system.boot=FlashData[FLASH_BOOT_ADDR];
+		my_system.boot=FlashPar[FLASH_BOOT_ADDR];
 	
 	}
 	else
 	{
-		my_system.boot=3;
+		my_system.boot=0;
 	}
-	if(0!=FlashData[FLASH_TAG_ADDR])
+	if((9600<=FlashPar[FLASH_BAUD_ADDR])&&(FlashPar[FLASH_BAUD_ADDR]<=115200))
 	{
-		//my_system.tag=FlashData[FLASH_TAG_ADDR];
+		my_system.baud=FlashPar[FLASH_BAUD_ADDR];
 	
 	}
 	else
 	{
-	//	my_system.tag=0;
+		my_system.baud=9600;
 	}
 	
 	

@@ -101,7 +101,7 @@ static const uint8_t aucCRCLo[] = {
 
 uint16_t crctable[256];
 //crc16-ccitt
-void crcinit(void)
+void crc_init(void)
 {
   uint16_t i,j;
 	uint16_t remainder;

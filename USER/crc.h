@@ -6,8 +6,8 @@
 
 
 
-void crcinit(void);
-uint16_t crccompute(unsigned char *buffer,unsigned int num );
+void crc_init(void);
+uint16_t CRC16( uint8_t * pucFrame, uint32_t usLen );
 
 
 #endif /*_CRC_H*/

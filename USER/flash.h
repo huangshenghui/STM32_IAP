@@ -24,22 +24,30 @@
 #define ADDR_FLASH_SECTOR_7     ((uint32_t)0x08007000) 	//扇区7起始地址, 4 Kbytes  
 
 
-#define  FLASH_BUFF   10
+#define  FLASH_PAR_BUFF   10
 #define  FLASH_PAR_ADDR  0x0801e000
 
 #define  FLASH_BOOT_ADDR   0
-#define  FLASH_TAG_ADDR    1
+#define  FLASH_BAUD_ADDR    1
 
+#define  FLASH_APP_BUFF  260
 
 #define  FLASH_IAP_ADDR  0x08000000  //24k
 #define  FLASH_APP1_ADDR  0x08006000	//48k
 #define  FLASH_APP2_ADDR  0x08012000	//48k
 
+#define  FLASH_IAP_PAGE_SIZE   (24/4)
+#define  FLASH_APP1_PAGE_SIZE  (48/4)
+#define  FLASH_APP2_PAGE_SIZE  (48/4)
+#define  FLASH_PAR_PAGE_SIZE   (8/4)
 
 
 
 
-extern volatile uint32_t FlashData[FLASH_BUFF];
+extern volatile uint32_t FlashPar[FLASH_PAR_BUFF];
+
+extern volatile uint32_t FlashApp[FLASH_APP_BUFF];
+
 
 void read_par(void);
 void FLASH_Write(uint32_t WriteAddr,uint32_t *pBuffer,uint32_t NumToWrite);
